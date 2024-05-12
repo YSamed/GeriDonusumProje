@@ -1,5 +1,5 @@
 from django.urls import path , include
-from users.api.views import ProfileViewSet , ProfileStatusViewSet , ProfileImageUpdateViewSet
+from users.api.views import ProfileViewSet , ProfileStatusViewSet , ProfileImageUpdateViewSet 
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()

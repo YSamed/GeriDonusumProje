@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 
@@ -22,8 +23,8 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('api/rest-auth/', include('dj_rest_auth.urls')),
     path('api/rest-auth/registration/', include('dj_rest_auth.registration.urls')),
-    path('api/', include('users.api.urls')),
-    path('api/', include('points.urls')),  # points app'ini ana URL yapılandırmasına ekleyin
+    path('api/', include('users.api.urls')),  # Kullanıcılarla ilgili API endpointleri
+    path('api/', include('points.urls')),      # Puanlarla ilgili API endpointleri
 ]
 
 from django.conf import settings
