@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .api.views import RecyclingMaterialListCreateAPIView, UserPointsAPIView, UserRecyclingMaterialCreateAPIView
+from .api.views import RecyclingMaterialListCreateAPIView, UserPointsAPIView, UserRecyclingMaterialCreateAPIView 
 
 urlpatterns = [
     path('materials/', RecyclingMaterialListCreateAPIView.as_view(), name='material-list-create'),
