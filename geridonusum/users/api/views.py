@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from users.models import Profile, ProfileStatus, Donation
-from users.api.serializers import ProfileSerializer, ProfileStatusSerializer, ProfileImageSerializer
+from users.api.serializers import ProfileSerializer, ProfileStatusSerializer, ProfileImageSerializer ,Donation , DonationSerializer
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import mixins
 from users.api.permissions import ownProfile, statusOwner
@@ -15,6 +15,11 @@ from rest_framework.decorators import api_view, permission_classes
 import decimal
 from points.models import UserPoints
 from users.api.serializers import DonationSerializer
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from users.models import Donation
+
+
 
 
 
@@ -97,7 +102,15 @@ class DonationLeaderboardAPIView(APIView):
             serialized_users.append(serialized_user)
 
         return Response(serialized_users)
+    
+class UserDonationListAPIView(generics.ListAPIView):
+    serializer_class = DonationSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        # Mevcut oturum açmış kullanıcının yapmış olduğu bağışları getir
+        return Donation.objects.filter(user=self.request.user)
+    
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def make_donation(request):
@@ -135,7 +148,6 @@ class UserDonationListAPIView(generics.ListAPIView):
     def get_queryset(self):
         return Donation.objects.filter(user=self.request.user)
     
-
 
 
 class ProfileImageView(APIView):

@@ -8,8 +8,8 @@ router.register(r'kullanici-durumları', ProfileStatusViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('profil_foto/<int:pk>/', ProfileImageView.as_view(), name='profil-foto'),  # Yeni eklenen URL
+    path('profil_foto/<int:pk>/', ProfileImageView.as_view(), name='profil-foto'),  
     path('donation-leaderboard/', DonationLeaderboardAPIView.as_view(), name='donation-leaderboard'),
     path('make-donation/', make_donation, name='make_donation'),
-    path('user-donations/', UserDonationListAPIView.as_view(), name='user-donations'),
+    path('user-donations/', UserDonationListAPIView.as_view(), name='user-donations'),  
 ]
