@@ -1,4 +1,4 @@
-from users.models import Profile, ProfileStatus
+from users.models import Profile, ProfileStatus ,Donation
 from rest_framework import serializers
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -23,4 +23,9 @@ class ProfileStatusSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ProfileStatus
+        fields = '__all__'
+
+class DonationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Donation
         fields = '__all__'

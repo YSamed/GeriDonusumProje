@@ -1,6 +1,7 @@
 from django.urls import path , include
-from .views import ProfileViewSet , ProfileStatusViewSet , ProfileImageUpdateViewSet ,DonationLeaderboardAPIView , make_donation
 from rest_framework.routers import DefaultRouter
+from .views import ProfileViewSet, ProfileStatusViewSet, ProfileImageUpdateViewSet, DonationLeaderboardAPIView, make_donation, UserDonationListAPIView
+
 
 
 router = DefaultRouter()
@@ -12,5 +13,7 @@ urlpatterns = [
     path('profil_foto/',ProfileImageUpdateViewSet.as_view(),name='profil-foto'),
     path('donation-leaderboard/', DonationLeaderboardAPIView.as_view(), name='donation-leaderboard'),
     path('make-donation/', make_donation, name='make_donation'),
+    path('user-donations/', UserDonationListAPIView.as_view(), name='user-donations'),
+
 
 ]

@@ -1,6 +1,6 @@
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
-from users.models import Profile, ProfileStatus , Donation 
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from users.models import Profile, ProfileStatus, Donation
 from users.api.serializers import ProfileSerializer, ProfileStatusSerializer, ProfileImageSerializer
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import mixins
@@ -9,14 +9,12 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from django.contrib.auth.models import User
-from django.db import models
+from django.db.models import Sum
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 import decimal
 from points.models import UserPoints
+from users.api.serializers import DonationSerializer
 
 
 
@@ -69,9 +67,10 @@ class ProfileImageUpdateViewSet(generics.UpdateAPIView):
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
 
-from django.db.models import Sum
-
+# Bağış sıralama API görünümü
 class DonationLeaderboardAPIView(APIView):
+    permission_classes = [AllowAny]  # Herkese açık erişim
+
     def get(self, request):
         # Kullanıcıları toplam bağış miktarına göre sıralayın
         users = User.objects.all().annotate(total_donation=Sum('donation__amount')).order_by('-total_donation')
@@ -99,36 +98,39 @@ class DonationLeaderboardAPIView(APIView):
 
         return Response(serialized_users)
 
-@api_view(['POST','GET'])
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def make_donation(request):
-    if request.method == 'POST':
-        donation_amount = decimal.Decimal(request.data.get('donation_amount'))
-        user = request.user
+    donation_amount = decimal.Decimal(request.data.get('donation_amount'))
+    user = request.user
 
-        # Kullanıcının puanlarını kontrol edin
-        try:
-            user_points = UserPoints.objects.get(user=user)
-        except UserPoints.DoesNotExist:
-            return Response({'error': 'Kullanıcının puanları bulunamadı.'}, status=400)
+    # Kullanıcının puanlarını kontrol edin
+    try:
+        user_points = UserPoints.objects.get(user=user)
+    except UserPoints.DoesNotExist:
+        return Response({'error': 'Kullanıcının puanları bulunamadı.'}, status=400)
 
-        total_points = user_points.points
+    total_points = user_points.points
 
-        # Kullanıcının yeterli puanı var mı kontrol edin
-        if total_points >= donation_amount:
-            # Kullanıcının bağış miktarını güncelle
-            donation, created = Donation.objects.get_or_create(user=user)
-            donation.amount += donation_amount
-            donation.save()
+    # Kullanıcının yeterli puanı var mı kontrol edin
+    if total_points >= donation_amount:
+        # Kullanıcının bağış miktarını güncelle
+        donation, created = Donation.objects.get_or_create(user=user)
+        donation.amount += donation_amount
+        donation.save()
 
-            # Kullanıcının toplam puanını azaltın
-            user_points.points -= donation_amount
-            user_points.save()
+        # Kullanıcının toplam puanını azaltın
+        user_points.points -= donation_amount
+        user_points.save()
 
-            return Response({'message': 'Bağış işlemi başarıyla tamamlandı.'}, status=200)
-        else:
-            return Response({'error': 'Yetersiz puan.'}, status=400)
+        return Response({'message': 'Bağış işlemi başarıyla tamamlandı.'}, status=200)
     else:
-        # Desteklenmeyen istek yöntemi
-        return Response({'error': 'Yanlış istek yöntemi.'}, status=405)
+        return Response({'error': 'Yetersiz puan.'}, status=400)
 
+
+class UserDonationListAPIView(generics.ListAPIView):
+    serializer_class = DonationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Donation.objects.filter(user=self.request.user)

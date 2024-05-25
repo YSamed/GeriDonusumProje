@@ -32,10 +32,11 @@ class UserRecyclingMaterialListAPIView(generics.ListAPIView):
     def get_queryset(self):
         return UserRecyclingMaterial.objects.filter(user=self.request.user)
 
+
 class UserPointsAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = UserPointsSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        user_points = get_object_or_404(UserPoints, user=self.request.user)
+        user_points = UserPoints.objects.get_or_create(user=self.request.user)[0]
         return user_points
