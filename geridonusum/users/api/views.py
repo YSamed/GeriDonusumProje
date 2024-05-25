@@ -134,3 +134,27 @@ class UserDonationListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         return Donation.objects.filter(user=self.request.user)
+    
+
+
+
+class ProfileImageView(APIView):
+    permission_classes = [AllowAny]  # Herkese açık erişim
+
+    def get(self, request, pk):
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'error': 'Kullanıcı bulunamadı.'}, status=404)
+
+        # Kullanıcıya ait profil nesnesini alın
+        try:
+            profile = user.profile
+        except Profile.DoesNotExist:
+            return Response({'error': 'Kullanıcı profil bulunamadı.'}, status=404)
+
+        # Profil nesnesinin resim URL'sini alın
+        image_url = profile.image.url if profile.image else None
+
+        # Görüntü URL'sini döndürün
+        return Response({'image_url': image_url})
