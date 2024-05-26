@@ -25,7 +25,8 @@ class ProfileStatusSerializer(serializers.ModelSerializer):
         model = ProfileStatus
         fields = '__all__'
 
+
 class DonationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Donation
-        fields = '__all__'
+        fields = ['user', 'amount', 'donation_date']

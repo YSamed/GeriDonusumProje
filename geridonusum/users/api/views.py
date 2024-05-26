@@ -18,7 +18,7 @@ from users.api.serializers import DonationSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from users.models import Donation
-
+import datetime
 
 
 
@@ -114,32 +114,61 @@ class UserDonationListAPIView(generics.ListAPIView):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def make_donation(request):
-    donation_amount = decimal.Decimal(request.data.get('donation_amount'))
+    # Gelen isteğin içeriğini kontrol et
+    if 'donation_amount' not in request.data:
+        return Response({'error': 'Bağış miktarı belirtilmedi.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    donation_amount = request.data.get('donation_amount')
+
+    # Bağış miktarını decimal cinsine dönüştür
+    try:
+        donation_amount = decimal.Decimal(donation_amount)
+    except decimal.InvalidOperation:
+        return Response({'error': 'Geçersiz bağış miktarı.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Bağış miktarının pozitif olduğunu kontrol et
+    if donation_amount <= 0:
+        return Response({'error': 'Bağış miktarı pozitif olmalıdır.'}, status=status.HTTP_400_BAD_REQUEST)
+
     user = request.user
 
-    # Kullanıcının puanlarını kontrol edin
+    # Bağış tarihini al
+    donation_date = request.data.get('donation_date')
+
+    # Bağış tarihini kontrol et
+    if donation_date:
+        try:
+            # Bağış tarihini dd.mm.yyyy formatına dönüştür
+            donation_date = datetime.datetime.strptime(donation_date, '%d.%m.%Y')
+        except ValueError:
+            return Response({'error': 'Geçersiz bağış tarihi formatı. Lütfen gg.aa.yyyy formatında girin.'}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        # Bağış tarihi verisi yoksa, varsayılan olarak şu anki tarihi kullan
+        donation_date = datetime.datetime.now()
+
+    # Kullanıcının puanlarını kontrol et
     try:
         user_points = UserPoints.objects.get(user=user)
     except UserPoints.DoesNotExist:
-        return Response({'error': 'Kullanıcının puanları bulunamadı.'}, status=400)
+        return Response({'error': 'Kullanıcının puanları bulunamadı.'}, status=status.HTTP_400_BAD_REQUEST)
 
     total_points = user_points.points
 
-    # Kullanıcının yeterli puanı var mı kontrol edin
+    # Kullanıcının yeterli puanı var mı kontrol et
     if total_points >= donation_amount:
         # Kullanıcının bağış miktarını güncelle
         donation, created = Donation.objects.get_or_create(user=user)
         donation.amount += donation_amount
+        donation.donation_date = donation_date # Bağış tarihini ayarla
         donation.save()
 
         # Kullanıcının toplam puanını azaltın
         user_points.points -= donation_amount
         user_points.save()
 
-        return Response({'message': 'Bağış işlemi başarıyla tamamlandı.'}, status=200)
+        return Response({'message': 'Bağış işlemi başarıyla tamamlandı.'}, status=status.HTTP_200_OK)
     else:
-        return Response({'error': 'Yetersiz puan.'}, status=400)
-
+        return Response({'error': 'Yetersiz puan.'}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserDonationListAPIView(generics.ListAPIView):
     serializer_class = DonationSerializer
