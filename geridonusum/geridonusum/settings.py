@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-%+@vutzx0fhwca*vna^=uv0cx-#*@$6@)@x2ezner)=ws3gnlr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2']
 
 
 # Application definition
@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'rest_auth.registration',
     'django.contrib.sites',
     'django_extensions',
+
+    'corsheaders',
 ]
 
 
@@ -63,6 +65,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'allauth.account.middleware.AccountMiddleware', 
+
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+]
+
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8000',
+    'http://10.0.2.2:8000',
 ]
 
 ROOT_URLCONF = 'geridonusum.urls'
@@ -144,7 +155,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    ]
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 SITE_ID = 1
 
